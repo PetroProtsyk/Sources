@@ -1,0 +1,46 @@
+Input 2:
+
+20
+9 fujv mzr kgukjmokvz schpxugnef p rjojpzbsro wpobp wl od
+9 orth xlruwr afpjkzr qtrrmfpr lvqsidbp qcr dcg xcykyy trarmefmf
+9 hdfeax d s uxnnrzko nxpcu v njxqbnh aaqzeeb kxpkw
+9 i hsmh hsmheh xgi eh xg xgeh xnfc ihsmh
+9 qxwd bejf wfaua rvkorigcm psdflr utgcsj iaolpoazv hmzczeg hqktnql
+9 r wwwr ndtc ndtclp lpb b wwwb www lp
+5 jibw ji jp bw jibw
+9 m xmnz mlk vlk lk iwkf lkiwkf vm v
+9 myrzwdyhv pojiires fbjbkcbtq pzdfuxfh rq ukbom ypkffomyl tdko zbwqkbuu
+9 izqht h qpbdayaifl pjsoie sujccnm umj dralemrspo euswuti m
+9 dcn csmzj krnc vkcoume wvpva yqoexwujwp v cxepgptf xb
+9 u ufmu ufmuqfy vmc ufm uqfy z vmcu qfy
+5 mybea zdr yubx xe dyroiy
+9 rnnabb ldk ndhn rnnaldk zeabbbb zeabb zea rnna bb
+9 a yncoklkc ek yyfqebh je edzhujjc gpmb ktqimdtw opka
+9 nl jtdmdxu ux nlmnyzdxu mnyz jtdm nlmnyz dxu uxdxu
+9 zvow qhx hx vth qhxhxdfgt q dfgt hxdfgt qhxq
+9 ikjea pdizqbo cwvswrhe m fw yyxcoj ggwgyonra ep tbnoazzs
+9 jg j uj ujnzdng nzdng nzdn e g ujnzdngj
+9 z dvqgfh wqx vnajabkqvs sdwkc dlhcnc ezrcvsc teje gzwwj
+
+Output 2:
+
+fujvkgukjmokvzmzrodprjojpzbsroschpxugnefwlwpobp
+afpjkzrdcglvqsidbporthqcrqtrrmfprtrarmefmfxcykyyxlruwr
+aaqzeebdhdfeaxkxpkwnjxqbnhnxpcusuxnnrzkov
+ehhsmhehhsmhihsmhixgehxgixgxnfc
+bejfhmzczeghqktnqliaolpoazvpsdflrqxwdrvkorigcmutgcsjwfaua
+blpblpndtclpndtcrwwwbwwwrwww
+bwjibwjibwjijp
+iwkflkiwkflkmlkmvlkvmvxmnz
+fbjbkcbtqmyrzwdyhvpojiirespzdfuxfhrqtdkoukbomypkffomylzbwqkbuu
+dralemrspoeuswutihizqhtmpjsoieqpbdayaiflsujccnmumj
+csmzjcxepgptfdcnkrncvkcoumevwvpvaxbyqoexwujwp
+qfyufmufmuqfyufmuuqfyuvmcuvmcz
+dyroiymybeaxeyubxzdr
+bbldkndhnrnnabbrnnaldkrnnazeabbbbzeabbzea
+aedzhujjcekgpmbjektqimdtwopkayncoklkcyyfqebh
+dxujtdmdxujtdmmnyznlmnyzdxunlmnyznluxdxuux
+dfgthxdfgthxqhxhxdfgtqhxqhxqqvthzvow
+cwvswrheepfwggwgyonraikjeampdizqbotbnoazzsyyxcoj
+egjgjnzdngnzdnujnzdngjujnzdnguj
+dlhcncdvqgfhezrcvscgzwwjsdwkctejevnajabkqvswqxz
