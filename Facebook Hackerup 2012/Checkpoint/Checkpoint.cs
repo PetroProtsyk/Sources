@@ -100,7 +100,7 @@ namespace Protsyk.Puzzles.Checkpoint {
                             number = next[j - i - 1] + prev[j - i + 1]; // Use previous row
                     }
 
-                    // Task thershold
+                    // Task threshold
                     if (number > 10000000)
                         break;
 
