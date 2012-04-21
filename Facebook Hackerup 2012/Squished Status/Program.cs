@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Program description: http://protsyk.com/cms/?p=450
+// Puzzle origin: http://www.facebook.com/hackercup/problems.php?pid=348968131789235&round=225705397509134
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,7 +88,7 @@ namespace Protsyk.Puzzles.SquishedStatus {
         }
 
         private static void SolveCounting(int max, int i, List<int> numbers, List<uint> sequenceCounts) {
-            ulong newCount = sequenceCounts.Last();
+            ulong newCount = sequenceCounts[sequenceCounts.Count - 1];
 
             // Combine two digits
             if (numbers.Count > 0) {
