@@ -97,7 +97,7 @@ namespace Protsyk.Puzzles.Checkpoint {
                         if (i == 2)
                             number = next[j - i - 1] + (j + 1); // Use G(x,1)=x+1
                         else
-                            number = next[j - i - 1] + prev[j - i + 1]; // Use previous row
+                            number = next[j - i - 1] + prev[j - i + 1]; // G(x,y) = G(x-1,y)+G(x,y-1)
                     }
 
                     // Task threshold
