@@ -62,6 +62,8 @@ namespace ConsoleApplication2
           }
         }
 
+        CleanUp(ref sd, k + 1);
+
         int l = 0;
         int p = 0;
         while (true)
@@ -164,6 +166,29 @@ namespace ConsoleApplication2
 
         Console.WriteLine("Case #{0}: {1}", i + 1, p);
       }
+    }
+
+    private static void CleanUp(ref SortedDictionary<int, Counter> sd, int k)
+    {
+      if (sd.Count == 0)
+        return;
+
+      int prev = 0;
+      int count = 0;
+
+      SortedDictionary<int, Counter> clean = new SortedDictionary<int, Counter>();
+
+      foreach (var sv in sd)
+      {
+        count += sv.Key - prev - 1;
+        prev = sv.Key;
+
+        if (count > k) break;
+
+        clean.Add(sv.Key, sv.Value);
+      }
+
+      sd = clean;
     }
 
     private static int FindNext(SortedDictionary<int, Counter> sd)
