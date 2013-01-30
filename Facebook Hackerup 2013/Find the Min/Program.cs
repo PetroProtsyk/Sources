@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ConsoleApplication2
+namespace Protsyk.Puzzles.FindTheMin
 {
   class Program
   {
@@ -64,17 +64,23 @@ namespace ConsoleApplication2
 
         CleanUp(ref sd, k + 1);
 
+        HashSet<int> active = new HashSet<int>(sd.Keys);
+
         int l = 0;
         int p = 0;
+        int next_p = int.MaxValue;
         while (true)
         {
-          p = FindNext(sd);
+          if (active.Contains(p))
+            p = FindNext(sd);
+          next_p = int.MaxValue;
 
           if (p == k && (sd.First().Key == 0) && (sd.Last().Key == k-1))
           {
             // We have all values in [0..k-1], there is no need to search for other values
             int f;
-            for (int o = 0; o < (n - k) % (k * (k+1)); o++, l++)
+            long ma = ((long)(n-k)) % ((long)k * (long)(k+1));
+            for (int o = 0; o < ma; o++, l++)
             {
               l = l % v.Count;
               f = v[l];
@@ -105,17 +111,24 @@ namespace ConsoleApplication2
             cv.Dec();
             if (cv.Value == 0)
             {
+              if (p > v[l - 1])
+              {
+                next_p = v[l - 1];
+              }
+
+              active.Remove(v[l - 1]);
               sd.Remove(v[l - 1]);
             }
           }
 
-          if (sd.TryGetValue((int)p, out cv))
-          {
-            cv.Inc();
-          }
-          else
+          //if (sd.TryGetValue((int)p, out cv))
+          //{
+          //  cv.Inc();
+          //}
+          //else
           {
             sd.Add((int)p, new Counter());
+            active.Add(p);
           }
 
           v[l - 1] = p;
@@ -125,6 +138,15 @@ namespace ConsoleApplication2
           if (n == k)
           {
             break;
+          }
+
+          if (next_p == int.MaxValue)
+          {
+            p++;
+          }
+          else
+          {
+            p = next_p;
           }
         }
 
