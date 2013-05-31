@@ -9,6 +9,7 @@ struct Item
 	int cost;
 };
 
+// Each item might be taken unlimited number of times
 int SolveUnboundedDynamic(std::vector<Item> items, int capacity)
 {
 	// Dynamic Programming solution
@@ -38,6 +39,7 @@ int SolveUnboundedDynamic(std::vector<Item> items, int capacity)
 	return best_cost[capacity];
 }
 
+// Each item might be taken only once
 int SolveBinaryDynamic(std::vector<Item> items, int capacity)
 {
 	// Dynamic Programming solution
