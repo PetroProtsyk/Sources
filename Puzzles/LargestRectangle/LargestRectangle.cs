@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GoogleInterview_Rectangles
+namespace LargestRectangle
 {
     class Program
     {
         static void Main(string[] args)
         {
-            // Asked during interview, 30.04.2013.
-            // Find the largest (by area) rectangle on the bar chart
-            // built from the given array of ints
             int[] bars = { 1, 5, 5, 2, 3, 2, 2, 1, 5, 5, 1, 2, 1 };
 
             Console.WriteLine(Solve(bars));
