@@ -2,26 +2,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace Protsyk.DataStructures
+namespace Protsyk.Collections.Btree
 {
-    // https://en.wikipedia.org/wiki/Disjoint-set_data_structure
-
-    public interface IRootedSet<T> : IEnumerable<T>
-    {
-        T Root { get; }
-
-        bool Contains(T x);
-    }
-
+    /// <summary>
+    /// A Disjoint Set data structure keeps track of a set of elements
+    /// partitioned into a number of disjoint subsets.
+    /// It allows to efficiently perform the following operations:
+    /// <ul>
+    ///    <li>Determine a subset to which a given element belongs. This can be used for determining if two elements are in the same subset.</li>
+    ///    <li>Join two subsets into a single new subset.</li>
+    ///    <li>Add new subset.</li>
+    ///</ul>
+    ///The computational complexity of these operations are near constant.
+    ///This allows to solve certain problems on Graphs very efficiently.
+    /// </summary>
+    /// <typeparam name="T">Type of elements</typeparam>
     public class DisjointSets<T>
     {
         #region Fields
+
         private readonly IEqualityComparer<T> comparer;
         private readonly Dictionary<T, Node> values;
         private readonly HashSet<Node> sets;
+
         #endregion
+
+        #region Properties
 
         public int SetCount => sets.Count;
 
@@ -31,10 +38,13 @@ namespace Protsyk.DataStructures
 
         public IEnumerable<KeyValuePair<T, IRootedSet<T>>> Items => values.Select(v => new KeyValuePair<T, IRootedSet<T>>(v.Key, Find(v.Key)));
 
+        #endregion
+
+        #region Constructors
+
         public DisjointSets()
-            : this(EqualityComparer<T>.Default)
-        {
-        }
+            : this(EqualityComparer<T>.Default) { }
+
 
         public DisjointSets(IEqualityComparer<T> comparer)
         {
@@ -42,6 +52,10 @@ namespace Protsyk.DataStructures
             this.values = new Dictionary<T, Node>(this.comparer);
             this.sets = new HashSet<Node>();
         }
+
+        #endregion
+
+        #region Methods
 
         public IRootedSet<T> MakeSet(T x)
         {
@@ -56,10 +70,12 @@ namespace Protsyk.DataStructures
             return node;
         }
 
+
         public IRootedSet<T> Find(T x)
         {
             return FindInternal(x);
         }
+
 
         private Node FindInternal(T x)
         {
@@ -86,6 +102,7 @@ namespace Protsyk.DataStructures
             return rootNode;
         }
 
+
         public IRootedSet<T> Union(T x, T y)
         {
             var xRoot = FindInternal(x);
@@ -93,10 +110,11 @@ namespace Protsyk.DataStructures
             return Union(xRoot, yRoot);
         }
 
+
         public IRootedSet<T> Union(IRootedSet<T> x, IRootedSet<T> y)
         {
-            var xRoot = (Node)x;
-            var yRoot = (Node)y;
+            var xRoot = (Node) x;
+            var yRoot = (Node) y;
 
             if (!sets.Contains(xRoot) ||
                 !sets.Contains(yRoot))
@@ -116,35 +134,41 @@ namespace Protsyk.DataStructures
                 sets.Remove(xRoot);
                 return yRoot;
             }
-            else if (xRoot.rank > yRoot.rank)
+
+            if (xRoot.rank > yRoot.rank)
             {
                 yRoot.parent = xRoot;
                 xRoot.count += yRoot.count;
                 sets.Remove(yRoot);
                 return xRoot;
             }
-            else
-            {
-                yRoot.parent = xRoot;
-                xRoot.count += yRoot.count;
-                xRoot.rank = xRoot.rank + 1;
-                sets.Remove(yRoot);
-                return xRoot;
-            }
+
+            yRoot.parent = xRoot;
+            xRoot.count += yRoot.count;
+            xRoot.rank = xRoot.rank + 1;
+            sets.Remove(yRoot);
+            return xRoot;
         }
+
+        #endregion
+
+        #region Types
 
         private class Node : IRootedSet<T>
         {
             #region Fields
-            private readonly  DisjointSets<T> owner;
+
+            private readonly DisjointSets<T> owner;
             private readonly T value;
 
             public Node parent;
             public int rank;
             public int count;
+
             #endregion
 
             #region Methods
+
             public Node(DisjointSets<T> owner, T value)
             {
                 this.owner = owner;
@@ -153,17 +177,21 @@ namespace Protsyk.DataStructures
                 this.rank = 0;
                 this.count = 1;
             }
+
             #endregion
 
             #region IRootedSet
+
             public T Root => value;
-            
+
             public int Count => count;
+
 
             public bool Contains(T x)
             {
                 return (owner.Find(x) == owner.Find(value));
             }
+
 
             public IEnumerator<T> GetEnumerator()
             {
@@ -171,11 +199,32 @@ namespace Protsyk.DataStructures
                 return owner.values.Where(v => owner.Find(v.Key) == set).Select(v => v.Key).GetEnumerator();
             }
 
+
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
             }
+
             #endregion
         }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Set that belongs to a forest of disjoint sets
+    /// </summary>
+    /// <typeparam name="T">Type of elements</typeparam>
+    public interface IRootedSet<T> : IEnumerable<T>
+    {
+        /// <summary>
+        /// Defining element of the set
+        /// </summary>
+        T Root { get; }
+
+        /// <summary>
+        /// Check if element belongs to this set
+        /// </summary>
+        bool Contains(T x);
     }
 }
