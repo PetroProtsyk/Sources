@@ -1,6 +1,6 @@
 using System;
 
-namespace Protsyk.Collections.Btree
+namespace Protsyk.DataStructures
 {
     public struct BitView
     {

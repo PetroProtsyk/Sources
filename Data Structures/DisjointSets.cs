@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Protsyk.Collections.Btree
+namespace Protsyk.DataStructures
 {
     /// <summary>
     /// A Disjoint Set data structure keeps track of a set of elements
