@@ -84,8 +84,8 @@ namespace Protsyk.Collections
 
         public IEnumerable<TrieMatch<T>> Match(ITrieMatcher<T> matcher, TrieOrder order)
         {
-            var stack = new Stack<KeyValuePair<INode, IEnumerator<KeyValuePair<T, INode>>>>();
-            stack.Push(new KeyValuePair<INode, IEnumerator<KeyValuePair<T, INode>>>(root, GetChildrenFromNode(root, order).GetEnumerator()));
+            var stack = new Stack<IEnumerator<ChildLink>>();
+            stack.Push(GetChildrenFromNode(root, order).GetEnumerator());
 
             var result = new List<T>();
 
@@ -94,7 +94,7 @@ namespace Protsyk.Collections
                 while (stack.Count > 0)
                 {
                     var current = stack.Peek();
-                    if (!current.Value.MoveNext())
+                    if (!current.MoveNext())
                     {
                         if (result.Count > 0)
                         {
@@ -102,21 +102,22 @@ namespace Protsyk.Collections
                             result.RemoveAt(result.Count - 1);
                         }
 
-                        current.Value.Dispose();
+                        current.Dispose();
                         stack.Pop();
                         continue;
                     }
 
-                    var key = current.Value.Current.Key;
+                    var key = current.Current.Label;
                     var match = matcher.Next(key);
 
                     if (match)
                     {
                         result.Add(key);
 
-                        var matchNode = current.Value.Current.Value;
-                        stack.Push(
-                            new KeyValuePair<INode, IEnumerator<KeyValuePair<T, INode>>>(matchNode, GetChildrenFromNode(matchNode, order).GetEnumerator()));
+                        //TODO: Improve performance by checking only intersection of next characters from matcher and children
+
+                        var matchNode = current.Current.Node;
+                        stack.Push(GetChildrenFromNode(matchNode, order).GetEnumerator());
 
                         if (matchNode.IsFinal && matcher.IsFinal())
                         {
@@ -136,23 +137,23 @@ namespace Protsyk.Collections
                         result.RemoveAt(result.Count - 1);
                     }
 
-                    current.Value.Dispose();
+                    current.Dispose();
                     stack.Pop();
                 }
             }
         }
 
 
-        private IEnumerable<KeyValuePair<T, INode>> GetChildrenFromNode(INode node, TrieOrder order)
+        private IEnumerable<ChildLink> GetChildrenFromNode(INode node, TrieOrder order)
         {
             var result = node.Children;
             if (order == TrieOrder.Asc)
             {
-                result = result.OrderBy(c => c.Key, comparer);
+                result = result.OrderBy(c => c.Label, comparer);
             }
             else if (order == TrieOrder.Desc)
             {
-                result = result.OrderByDescending(c => c.Key, comparer);
+                result = result.OrderByDescending(c => c.Label, comparer);
             }
             return result;
         }
@@ -171,27 +172,27 @@ namespace Protsyk.Collections
             labels.Add(root, 1);
             text.AppendLine($"node1[label=\"root\"]");
 
-            foreach (var child in GetChildrenFromNode(root, order))
+            foreach (var childLink in GetChildrenFromNode(root, order))
             {
                 int childIndex = 0;
-                if (!labels.TryGetValue(child.Value, out childIndex))
+                if (!labels.TryGetValue(childLink.Node, out childIndex))
                 {
                     childIndex = labels.Count + 1;
-                    labels.Add(child.Value, childIndex);
+                    labels.Add(childLink.Node, childIndex);
                 }
-                text.AppendLine($"node1 -> node{childIndex} [label=\"&nbsp;{child.Key}\"]");
+                text.AppendLine($"node1 -> node{childIndex} [label=\"&nbsp;{childLink.Label}\"]");
             }
 
-            foreach (var node in Visit(order))
+            foreach (var link in Visit(order))
             {
                 int index = 0;
-                if (!labels.TryGetValue(node.Value, out index))
+                if (!labels.TryGetValue(link.Node, out index))
                 {
                     index = labels.Count + 1;
-                    labels.Add(node.Value, index);
+                    labels.Add(link.Node, index);
                 }
 
-                if (node.Value.IsFinal)
+                if (link.Node.IsFinal)
                 {
                     text.AppendLine($"node{index}[label=\"*\"]");
                 }
@@ -200,15 +201,15 @@ namespace Protsyk.Collections
                     text.AppendLine($"node{index}[label=\"\"]");
                 }
 
-                foreach (var child in GetChildrenFromNode(node.Value, order))
+                foreach (var childLink in GetChildrenFromNode(link.Node, order))
                 {
                     int childIndex = 0;
-                    if (!labels.TryGetValue(child.Value, out childIndex))
+                    if (!labels.TryGetValue(childLink.Node, out childIndex))
                     {
                         childIndex = labels.Count + 1;
-                        labels.Add(child.Value, childIndex);
+                        labels.Add(childLink.Node, childIndex);
                     }
-                    text.AppendLine($"node{index} -> node{childIndex} [label=\"&nbsp;{child.Key}\"]");
+                    text.AppendLine($"node{index} -> node{childIndex} [label=\"&nbsp;{childLink.Label}\"]");
                 }
             }
 
@@ -217,22 +218,24 @@ namespace Protsyk.Collections
         }
 
 
-        private IEnumerable<KeyValuePair<T, INode>> Visit(TrieOrder order)
+        private IEnumerable<ChildLink> Visit(TrieOrder order)
         {
-            var stack = new Stack<KeyValuePair<T, INode>>();
-            stack.Push(new KeyValuePair<T, INode>(default(T), root));
+            var stack = new Stack<ChildLink>();
+
+            foreach (var child in GetChildrenFromNode(root, order))
+            {
+                stack.Push(child);
+            }
+
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
-                foreach (var child in GetChildrenFromNode(current.Value, order))
+                foreach (var child in GetChildrenFromNode(current.Node, order))
                 {
                     stack.Push(child);
                 }
 
-                if (current.Value != root)
-                {
-                    yield return current;
-                }
+                yield return current;
             }
         }
 
@@ -242,22 +245,41 @@ namespace Protsyk.Collections
 
         private interface INode
         {
-            IEnumerable<KeyValuePair<T, INode>> Children { get; }
+            IEnumerable<ChildLink> Children { get; }
 
             bool IsFinal { get; set; }
 
-            bool Add(T part, out INode node);
+            bool Add(T label, out INode node);
 
-            INode Find(T part);
+            INode Find(T label);
+        }
+
+        private struct ChildLink
+        {
+            /// <summary>
+            /// Label of the link
+            /// </summary>
+            public readonly T Label;
+
+            /// <summary>
+            /// Children, associated with the label
+            /// </summary>
+            public readonly INode Node;
+
+            public ChildLink(T label, INode node)
+            {
+                this.Label = label;
+                this.Node = node;
+            }
         }
 
 
         private class Node : INode
         {
-            private readonly List<KeyValuePair<T, INode>> children = new List<KeyValuePair<T, INode>>();
+            private readonly List<ChildLink> children = new List<ChildLink>();
 
 
-            public IEnumerable<KeyValuePair<T, INode>> Children
+            public IEnumerable<ChildLink> Children
             {
                 get
                 {
@@ -267,26 +289,26 @@ namespace Protsyk.Collections
 
             public bool IsFinal { get; set; }
 
-            public bool Add(T part, out INode node)
+            public bool Add(T label, out INode node)
             {
-                node = Find(part);
+                node = Find(label);
                 if (node != null)
                 {
                     return false;
                 }
 
                 node = new Node();
-                children.Add(new KeyValuePair<T, INode>(part, node));
+                children.Add(new ChildLink(label, node));
                 return true;
             }
 
-            public INode Find(T part)
+            public INode Find(T label)
             {
                 foreach (var child in children)
                 {
-                    if (Equals(child.Key, part))
+                    if (Equals(child.Label, label))
                     {
-                        return child.Value;
+                        return child.Node;
                     }
                 }
 
@@ -325,6 +347,9 @@ namespace Protsyk.Collections
         }
     }
 
+    /// <summary>
+    /// Match all elements in Trie
+    /// </summary>
     public class AnyMatcher<T> : ITrieMatcher<T>
     {
         public void Reset()
@@ -349,6 +374,9 @@ namespace Protsyk.Collections
         }
     }
 
+    /// <summary>
+    /// Match single element in Trie (word)
+    /// </summary>
     public class SequenceMatcher<T> : ITrieMatcher<T>
     {
         private readonly T[] items;
@@ -402,6 +430,12 @@ namespace Protsyk.Collections
         }
     }
 
+    /// <summary>
+    /// Match all elements in the Trie within given Levenshtein distance
+    /// from the target element.
+    /// 
+    /// Works for Tries built from a set of strings.
+    /// </summary>
     public class LevenshteinMatcher : ITrieMatcher<char>
     {
         private readonly DFA dfa;
