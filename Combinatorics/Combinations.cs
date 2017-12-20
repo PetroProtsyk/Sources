@@ -9,6 +9,14 @@ namespace Protsyk.Combinatorics.Combinations
 {
     class Program
     {
+        static ulong Combinations(ulong n, ulong k)
+        {
+            if (n == 0) return 0;
+            if (k > n)  return 0;
+            if (k == 0) return 1;
+            if (k == n) return 1;
+            return Combinations(n-1, k-1) + Combinations(n-1, k);
+        }
 
         class State
         {
