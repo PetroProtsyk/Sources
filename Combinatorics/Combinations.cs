@@ -18,6 +18,38 @@ namespace Protsyk.Combinatorics.Combinations
             return Combinations(n-1, k-1) + Combinations(n-1, k);
         }
 
+        static Lazy<ulong[,]> combinationsCache = new Lazy<ulong[,]>(()=>InitializeCombinations(64));
+
+        static ulong[,] InitializeCombinations(int size)
+        {
+          var r = new ulong[size + 1,size + 1];
+
+          for (int i=0; i<size+1; ++i)
+          {
+            r[i,0] = 1;
+            r[i,i] = 1;
+          }
+
+          for (int i=1; i<size+1; ++i)
+          {
+           for (int j=1; j<size+1; ++j)
+           {
+             checked
+             {
+               r[i,j] = r[i-1,j-1] + r[i-1,j];
+             }
+           }
+          }
+          return r;
+        }
+
+        static ulong CombinationsCached(ulong n, ulong k)
+        {
+          if (k > n)  return 0;
+          return combinationsCache.Value[n,k];
+        }
+
+
         class State
         {
             public State(int m, int i) { this.m = m; this.i = i; }
