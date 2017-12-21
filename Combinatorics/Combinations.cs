@@ -18,6 +18,32 @@ namespace Protsyk.Combinatorics.Combinations
             return Combinations(n-1, k-1) + Combinations(n-1, k);
         }
 
+        static ulong CombinationsFormula(ulong n, ulong k)
+        {
+            if (n == 0) return 0;
+            if (k > n)  return 0;
+            if (k == 0) return 1;
+            if (k == n) return 1;
+
+            // n! / ((n-k)! * k!)
+
+            ulong result = 1;
+            for (ulong i=n-k+1; i<=n; ++i)
+            {
+              result = (result*i); 
+            }
+
+            ulong kf = 1;
+            for (ulong i=2; i<=k; ++i)
+            {
+              kf = (kf*i); 
+            }
+
+            result = (result / kf);
+            return result;
+        }
+ 
+
         static Lazy<ulong[,]> combinationsCache = new Lazy<ulong[,]>(()=>InitializeCombinations(64));
 
         static ulong[,] InitializeCombinations(int size)
