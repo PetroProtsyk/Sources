@@ -1,15 +1,34 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace Protsyk.DataStructures
+namespace ccs
 {
-    /// <summary>
-    /// Ukkonen linear time O(n) algorithm
-    /// As described in the book by D. Gusfield, Algorithms on Strings, Trees and Sequences
-    /// </summary>
-    public class SuffixTreeUkkonenLinear : SuffixTree
+    // https://www.hackerrank.com/challenges/string-similarity/problem
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var t = int.Parse(Console.ReadLine());
+            for (int i=0; i<t; ++i)
+            {
+                var txt = Console.ReadLine();
+                var st = new SuffixTreeUkkonenV3(txt);
+
+                long s = 0;
+                int mk = 0;
+                st.VisitInternal((n,k)=>
+                {
+                    s += k * n.leafs;
+                    mk += k;
+                });
+                Console.WriteLine(s + txt.Length - mk);
+            }
+        }
+    }
+
+    public class SuffixTreeUkkonenV3
     {
         #region Fields
         private static readonly int currentPosition = int.MinValue;
@@ -19,58 +38,22 @@ namespace Protsyk.DataStructures
         #endregion
 
         #region Constructor
-        public SuffixTreeUkkonenLinear(string inputText)
+        public SuffixTreeUkkonenV3(string inputText)
         {
-            text = inputText + TerminationCharacter;
+            text = inputText + '$';
             root = Build(text);
         }
         #endregion
 
         #region Api
-        public override bool IsMatch(string substring)
+        public void VisitInternal(Action<Node, int> handle)
         {
-            return Match(substring).Any();
-        }
-
-        public override IEnumerable<int> Match(string substring)
-        {
-            var node = Navigate(root, 0, substring.Length, substring, text, false);
-            if (!node.isFound)
-            {
-                yield break;
-            }
-
-            var stack = new Stack<Node>();
-            if (node.childIndex < 0)
-            {
-                stack.Push(node.parent);
-            }
-            else
-            {
-                stack.Push(node.parent.children[node.childIndex]);
-            }
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (HasChildren(current))
-                {
-                    foreach (var child in current.children)
-                    {
-                        stack.Push(child);
-                    }
-                }
-                else
-                {
-                    yield return current.pos;
-                }
-            }
+            Navigate(root, 0, text.Length, text, text, true, handle);
         }
         #endregion
 
         #region Methods
-        private static Location Navigate(Node parent, int from, int to, string substring, string text, bool useSkipCount)
+        private static Location Navigate(Node parent, int from, int to, string substring, string text, bool useSkipCount, Action<Node, int> handle = null)
         {
             var node = parent;
 
@@ -119,7 +102,11 @@ namespace Protsyk.DataStructures
                     {
                         return new Location(false, node, k, m, childIndex);
                     }
-                    node = child;
+                    else
+                    {
+                      handle?.Invoke(child, m);
+                      node = child;
+                    }
                 }
                 else
                 {
@@ -136,13 +123,27 @@ namespace Protsyk.DataStructures
             return node.end;
         }
 
+        struct Location
+        {
+            public bool isFound;
+            public Node parent;
+            public int offsetInString;
+            public int offsetInEdge;
+            public int childIndex;
+
+            public Location(bool isFound, Node parent, int offsetInString, int offsetInEdge, int childIndex)
+            {
+                this.isFound = isFound;
+                this.parent = parent;
+                this.offsetInString = offsetInString;
+                this.offsetInEdge = offsetInEdge;
+                this.childIndex = childIndex;
+            }
+        }
+
+
         private static int FindChild(char c, Node node, string text)
         {
-            if (node.children == null)
-            {
-                return -1;
-            }
-
             for (int i = 0; i < node.children.Count; ++i)
             {
                 var child = node.children[i];
@@ -151,7 +152,6 @@ namespace Protsyk.DataStructures
                     return i;
                 }
             }
-
             return -1;
         }
 
@@ -228,6 +228,8 @@ namespace Protsyk.DataStructures
                         node.end = text.Length;
                     }
                 }
+
+                CountLeafs(root);
 
                 return root;
             }
@@ -472,59 +474,63 @@ namespace Protsyk.DataStructures
                 //Rule 3. Suffix is already in the tree
                 // Do nothing
             }
-        }
-        #endregion
 
-        #region Visualization
-
-        public override string ToDotNotation()
-        {
-            var dotText = new StringBuilder();
-            dotText.AppendLine("digraph g {");
-            dotText.AppendLine("node[shape = circle];");
-
-            var labels = new Dictionary<Node, int>();
-
-            // Nodes
-            foreach (var node in Visit(root))
+            private static void CountLeafs(Node root)
             {
-                int index = GetLabelIndex(labels, node);
+                var s = new Stack<ValueTuple<Node, int>>();
+                s.Push(new ValueTuple<Node, int>(root, 0));
 
-                if (!HasChildren(node))
+                while (s.Count > 0)
                 {
-                    dotText.AppendLine($"node{index} [label=\"{node.pos}\"]");
-                }
-                else
-                {
-                    dotText.AppendLine($"node{index} [label=\"\"]");
+                    var c = s.Pop();
 
-                    foreach (var child in node.children.OrderBy(c => text[c.start]))
+                    if (c.Item2 == 0)
                     {
-                        int childIndex = GetLabelIndex(labels, child);
-                        dotText.AppendLine($"node{index} -> node{childIndex} [label=\"{text.Substring(child.start, end(child, text.Length + 1) - child.start)}\"]");
+                    if (c.Item1.children != null && c.Item1.children.Count > 0)
+                    {
+                        s.Push(new ValueTuple<Node, int>(c.Item1, 1));
+
+                        foreach(var child in c.Item1.children)
+                        {
+                        s.Push(new ValueTuple<Node, int>(child, 0));
+                        }
                     }
+                    else
+                    {
+                        c.Item1.leafs = 1;
+                    }
+                    }
+                    else
+                    {
+                        foreach(var child in c.Item1.children)
+                        {
+                        c.Item1.leafs += child.leafs;
+                        }
+                    }
+
                 }
 
-                if (node.suffixLink != null && node.suffixLink != root)
+                /*
+                if (root.leafs > 0)
                 {
-                    int suffixIndex = GetLabelIndex(labels, node.suffixLink);
-                    dotText.AppendLine($"node{index} -> node{suffixIndex} [style=\"dashed\", constraint=false, color=silver]");
+                    return root.leafs;
                 }
+
+                if (root.children==null || root.children.Count == 0)
+                {
+                    root.leafs = 1;
+                    return 1;
+                }
+
+                int leafs = 0;
+                foreach(var child in root.children)
+                {
+                    leafs += CountLeafs(child);
+                }
+                
+                root.leafs = leafs;
+                return leafs;*/
             }
-
-            dotText.AppendLine("}");
-            return dotText.ToString();
-        }
-
-        private static int GetLabelIndex(Dictionary<Node, int> labels, Node node)
-        {
-            if (!labels.TryGetValue(node, out var index))
-            {
-                index = labels.Count + 1;
-                labels.Add(node, index);
-            }
-
-            return index;
         }
 
         private static IEnumerable<Node> Visit(Node root)
@@ -535,13 +541,10 @@ namespace Protsyk.DataStructures
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
-
-                if (HasChildren(current))
+                if (current.children!=null)
+                foreach (var child in current.children)
                 {
-                    foreach (var child in current.children)
-                    {
-                        stack.Push(child);
-                    }
+                    stack.Push(child);
                 }
 
                 yield return current;
@@ -551,10 +554,11 @@ namespace Protsyk.DataStructures
         #endregion
 
         #region Types
-        class Node
+        public class Node
         {
             public int start;
             public int end;
+            public int leafs;
             public Node parent;
 
             // Leaf
@@ -563,24 +567,6 @@ namespace Protsyk.DataStructures
             // Internal
             public Node suffixLink;
             public IList<Node> children;
-        }
-
-        struct Location
-        {
-            public bool isFound;
-            public Node parent;
-            public int offsetInString;
-            public int offsetInEdge;
-            public int childIndex;
-
-            public Location(bool isFound, Node parent, int offsetInString, int offsetInEdge, int childIndex)
-            {
-                this.isFound = isFound;
-                this.parent = parent;
-                this.offsetInString = offsetInString;
-                this.offsetInEdge = offsetInEdge;
-                this.childIndex = childIndex;
-            }
         }
         #endregion
     }

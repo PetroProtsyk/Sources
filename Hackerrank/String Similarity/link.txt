@@ -1,0 +1,3 @@
+http://codeforces.com/blog/entry/3107
+https://www.geeksforgeeks.org/z-algorithm-linear-time-pattern-searching-algorithm/
+https://www.hackerrank.com/challenges/string-similarity/topics/z-function

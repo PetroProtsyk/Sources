@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Protsyk.DataStructures
 {
@@ -55,6 +54,9 @@ namespace Protsyk.DataStructures
                 case SuffixTreeAlgorithm.UkkonenLinear: // O(n)
                     return new SuffixTreeUkkonenLinear(text);
 
+                case SuffixTreeAlgorithm.UkkonenFast: // O(n)
+                    return new SuffixTreeUkkonen(text);
+
                 default:
                     throw new NotImplementedException($"No implementation for algoritm {algorithm}");
             }
@@ -68,6 +70,7 @@ namespace Protsyk.DataStructures
         UkkonenCubic,
         UkkonenQuadratic,
         UkkonenLinear,
+        UkkonenFast,
         Weiner,
         McCreight
     }
