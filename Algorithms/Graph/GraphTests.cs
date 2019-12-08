@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Protsyk.Common.UnitTests;
 
-namespace Protsyk.Collections.Btree.TestApp
+namespace Protsyk.Collections.GraphTests
 {
     public static class GraphTests
     {
@@ -113,6 +113,38 @@ namespace Protsyk.Collections.Btree.TestApp
                                           .ToArray();
 
                 Assert.AreEqualSequences(expected, actual, EdgeComparer.UndirectedEdgeComparer);
+            }
+        }
+
+        public static void MaxBipartitie()
+        {
+            var graph = new ArrayGraph(new int[,]
+                                        { // 0  1  2  3  4  5  6  7  8  9
+                                            {0, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 0
+                                            {0, 0, 0, 0, 0, 1, 0, 1, 0, 0}, // 1
+                                            {0, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // 2
+                                            {0, 0, 0, 0, 0, 1, 0, 1, 1, 0}, // 3
+                                            {0, 0, 0, 0, 0, 0, 1, 1, 0, 0}, // 4
+                                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 5
+                                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 6
+                                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 7
+                                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 8
+                                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  // 9
+                                        });
+
+            int maxFlow = ShortestPath
+                            .FordFulkerson(graph, 0, 9)
+                            .Where(e => e.from == 0)
+                            .Sum(e => e.weight);
+
+            Assert.AreEqual(4, maxFlow);
+
+            // Max bipartitie match:
+            foreach (var edge in ShortestPath
+                                    .FordFulkerson(graph, 0, 9)
+                                    .Where(e => e.from != 0 && e.to != 9))
+            {
+                Console.WriteLine($"{edge.from} --> {edge.to}");
             }
         }
     }

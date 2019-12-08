@@ -2,19 +2,39 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Protsyk.DataStructures;
 
-namespace PMS.Common.Collections
+namespace Protsyk.Collections
 {
     public class PathStep
     {
-        public int V;
-        public List<PathStep> before;
-        public int length;
+        public readonly int V;
+        public readonly List<PathStep> before;
+        public readonly int length;
+
+        public PathStep(int start)
+        {
+            this.V = start;
+            this.before = new List<PathStep>();
+            this.length = 0;
+        }
+
+        public PathStep(PathStep from, int to, int toWeight)
+        {
+            this.V = to;
+            this.before = new List<PathStep>() { from };
+            this.length = from.length + toWeight;
+        }
+
+        public void AddAlternative(PathStep path)
+        {
+            before.Add(path);
+        }
     }
 
     public static class ShortestPath
     {
-        public static IEnumerable<PathStep> FindBFS(int from, int to, IGraph g)
+        public static IEnumerable<PathStep> FindAllShortestPathsUsingBFS(IGraph g, int from, int to)
         {
             var wave = new Queue<PathStep>();
             var inwave = new Dictionary<int, PathStep>();
@@ -22,13 +42,7 @@ namespace PMS.Common.Collections
             var bestPaths = new List<PathStep>();
 
             int minLength = int.MaxValue;
-
-            PathStep p = new PathStep
-            {
-                V = from,
-                before = new List<PathStep>(),
-                length = 0
-            };
+            var p = new PathStep(from);
 
             inwave.Add(from, p);
             bestSoFar.Add(from, 0);
@@ -54,21 +68,19 @@ namespace PMS.Common.Collections
                     continue;
                 }
 
-                
                 foreach (var edge in g.EdgesFrom(current.V))
                 {
+                    if (edge.weight != 1)
+                    {
+                        throw new Exception("This algorithm does not work on weighted graphs");
+                    }
+
                     if (!bestSoFar.TryGetValue(edge.to, out var kl) || kl >= current.length + 1)
                     {
                             bestSoFar[edge.to] = current.length + 1;
                             if (!inwave.TryGetValue(edge.to, out var knownPath))
                             {
-                                PathStep nextStep = new PathStep
-                                {
-                                    V = edge.to,
-                                    before = new List<PathStep>() { current },
-                                    length = current.length + 1
-                                };
-
+                                var nextStep = new PathStep(current, edge.to, 1);
                                 wave.Enqueue(nextStep);
                                 inwave.Add(edge.to, nextStep);
                             }
@@ -79,7 +91,7 @@ namespace PMS.Common.Collections
                                 // a new alternative path is found
                                 if (knownPath.length == current.length + 1)
                                 {
-                                    knownPath.before.Add(current);
+                                    knownPath.AddAlternative(current);
                                 }
                             }
                     }
@@ -87,133 +99,113 @@ namespace PMS.Common.Collections
             }
             return bestPaths;
         }
-    
 
-        /* Returns true if there is a path 
-        from source 's' to sink 't' in residual 
-        graph. Also fills parent[] to store the 
-        path */
-        private static bool bfs(int [,]rGraph, int s, int t, int[] parent, int V) 
-        { 
-            // Create a visited array and mark 
-            // all vertices as not visited 
-            bool []visited = new bool[V]; 
-            for(int i = 0; i < V; ++i) 
-                visited[i] = false; 
+        public static PathStep FindPathsWithLowestWeightBFS(IGraph graph, int from, int to)
+        {
+            var seen = new HashSet<int>();
+            var wave = new Heap<PathStep>(
+                    Comparer<PathStep>.Create((x, y) => x.length - y.length));
 
-            // Create a queue, enqueue source vertex and mark 
-            // source vertex as visited 
-            List<int> queue = new List<int>(); 
-            queue.Add(s); 
-            visited[s] = true; 
-            parent[s] = -1; 
+            wave.Add(new PathStep(from));
 
-            // Standard BFS Loop 
-            while (queue.Count != 0) 
-            { 
-                int u = queue[0]; 
-                    queue.RemoveAt(0); 
+            while(!wave.IsEmpty)
+            {
+                var top = wave.RemoveTop();
 
-                for (int v = 0; v < V; v++) 
-                { 
-                    if (visited[v] == false && rGraph[u, v] > 0) 
-                    { 
-                        queue.Add(v); 
-                        parent[v] = u; 
-                        visited[v] = true; 
-                    } 
-                } 
-            } 
+                if (top.V == to)
+                {
+                    return top;
+                }
 
-            // If we reached sink in BFS 
-            // starting from source, then 
-            // return true, else false 
-            return (visited[t] == true); 
-        } 
+                foreach (var edge in graph.EdgesFrom(top.V))
+                {
+                    if (edge.weight <= 0)
+                    {
+                        throw new Exception("This algorithm does not work on graphs with negative or zero edges");
+                    }
 
-/*
-           Output should be 4
+                    if (seen.Add(edge.to))
+                    {
+                        var nextStep = new PathStep(top, edge.to, edge.weight);
+                        wave.Add(nextStep);
+                    }
+                }
+            }
 
-            int [,]graph =new int[,] {// 0  1  2  3  4  5  6  7  8  9
-                                        {0, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 0
-                                        {0, 0, 0, 0, 0, 1, 0, 1, 0, 0}, // 1
-                                        {0, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // 2
-                                        {0, 0, 0, 0, 0, 1, 0, 1, 1, 0}, // 3
-                                        {0, 0, 0, 0, 0, 0, 1, 1, 0, 0}, // 4
-                                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 5
-                                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 6
-                                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 7
-                                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 8
-                                        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  // 9
-                                    };
-            Console.WriteLine("The maximum possible flow is " + 
-                           ShortestPath.FordFulkerson(graph, 0, 9, 10));
-
-*/
-
-        // Returns tne maximum flow 
-        // from s to t in the given graph 
-        public static int FordFulkerson(int [,]graph, int s, int t, int V) 
-        { 
-            int u, v; 
-
-            // Create a residual graph and fill 
-            // the residual graph with given 
-            // capacities in the original graph as 
-            // residual capacities in residual graph 
-
-            // Residual graph where rGraph[i,j] 
-            // indicates residual capacity of 
-            // edge from i to j (if there is an 
-            // edge. If rGraph[i,j] is 0, then 
-            // there is not) 
-            int [,]rGraph = new int[V, V];
-
-            for (u = 0; u < V; u++) 
-                for (v = 0; v < V; v++) 
-                    rGraph[u, v] = graph[u, v]; 
-
-            // This array is filled by BFS and to store path 
-            int []parent = new int[V]; 
-
-            int max_flow = 0; // There is no flow initially 
-
-            // Augment the flow while tere is path from source 
-            // to sink 
-            while (bfs(rGraph, s, t, parent, V))
-            { 
-                // Find minimum residual capacity of the edhes 
-                // along the path filled by BFS. Or we can say 
-                // find the maximum flow through the path found. 
-                int path_flow = int.MaxValue; 
-                for (v = t; v != s; v = parent[v]) 
-                { 
-                    u = parent[v]; 
-                    path_flow = Math.Min(path_flow, rGraph[u,v]); 
-                } 
-
-                // update residual capacities of the edges and 
-                // reverse edges along the path 
-                for (v = t; v != s; v = parent[v]) 
-                { 
-                    u = parent[v]; 
-                    rGraph[u,v] -= path_flow; 
-                    rGraph[v,u] += path_flow; 
-                } 
-
-                // Add path flow to overall flow 
-                max_flow += path_flow; 
-            } 
-
-            for (int i=1; i<V-1; i++)
-              for (int j=1; j<V-1; j++)
-                if (i < j && rGraph[j,i] > 0)
-                    Console.WriteLine($"{i} -> {j}");
-
-            // Return the overall flow 
-            return max_flow;
+            return null;
         }
 
+        public static void DepthFirstSearch(IGraph graph, int root)
+        {
+            var pre = new Dictionary<int, int>();
+            var post = new Dictionary<int, int>();
+            DepthFirstSearch(graph, root, pre, post);
+        }
+
+        private static void DepthFirstSearch(IGraph graph, int root, Dictionary<int, int> pre, Dictionary<int, int> post)
+        {
+            pre.Add(root, pre.Count);
+            foreach(var edge in graph.EdgesFrom(root))
+            {
+                if (pre.ContainsKey(edge.to))
+                {
+                    continue;
+                }
+                DepthFirstSearch(graph, edge.to, pre, post);
+            }
+            post.Add(root, post.Count);
+        }
+
+        /// Returns graph edges of the maximum flow
+        public static IEnumerable<Edge> FordFulkerson(ArrayGraph graph, int source, int target) 
+        {
+            var residualGraph = ArrayGraph.CloneFromGraph(graph);
+            int maxFlow = 0;
+
+            while (true)
+            {
+                // Find augementing path from source to sink in the residual graph
+                var path = FindPathsWithLowestWeightBFS(residualGraph, source, target);
+                if (path == null)
+                {
+                    break;
+                }
+
+                var pathFlow = path.ToEdges()
+                                   .Select(e => residualGraph[e.from, e.to])
+                                   .Min();
+
+                foreach(var edge in path.ToEdges())
+                {
+                    residualGraph[edge.from, edge.to] -= pathFlow;
+                    residualGraph[edge.to, edge.from] += pathFlow;
+                }
+
+                maxFlow += pathFlow;
+            } 
+
+            // Flow from the source should be equal to max flow
+            var fromSource = graph
+                                .EdgesFrom(source)
+                                .Where(e => residualGraph[e.from, e.to] < graph[e.from, e.to])
+                                .Sum(e => graph[e.from, e.to] - residualGraph[e.from, e.to]);
+
+            if (maxFlow != fromSource)
+            {
+                throw new Exception($"Something is broken. Expected {maxFlow}, actual {fromSource}");
+            }
+
+            for (int i=0; i<residualGraph.VertexesCount(); i++)
+            {
+                for (int j=0; j<residualGraph.VertexesCount(); j++)
+                {
+                    if (residualGraph[i,j] < graph[i,j])
+                    {
+                        yield return new Edge(i, j, graph[i,j] - residualGraph[i,j]);
+                    }
+                }
+            }
+        }
     }
 
     public static class PathExtensions
@@ -248,6 +240,21 @@ namespace PMS.Common.Collections
             verticies.RemoveAt(verticies.Count - 1);
         }
 
+        public static IEnumerable<(int from, int to)> ToEdges(this PathStep path)
+        {
+            var to = path;
+            while (to.before.Count > 0)
+            {
+                if (to.before.Count > 1)
+                {
+                    throw new Exception("Path is not unique");
+                }
+
+                var from = to.before.FirstOrDefault();
+                yield return (from.V, to.V);
+                to = from;
+            }
+        }
     }
 
 }

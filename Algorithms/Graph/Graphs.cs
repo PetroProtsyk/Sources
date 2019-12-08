@@ -113,6 +113,39 @@ namespace Protsyk.Collections
                     yield return new Edge(v,j,adjacencyMatrix[v,j]);
               }
         }
+
+        public static ArrayGraph CloneFromGraph(IGraph graph)
+        {
+            var maybeArray = graph as ArrayGraph;
+            if (maybeArray != null)
+            {
+                return CloneFromArray(maybeArray.adjacencyMatrix);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        public static ArrayGraph CloneFromArray(int[,] graph)
+        {
+            var vCount = graph.GetLength(0);
+            var copy = new int[vCount, vCount];
+
+            for (int i=0; i<vCount; ++i)
+            {
+                for (int j=0; j<vCount; ++j)
+                {
+                    copy[i, j] = graph[i, j];
+                }
+            }
+
+            return new ArrayGraph(copy);
+        }
+
+        public int this[int u, int v]
+        {
+            get => adjacencyMatrix[u, v];
+            set => adjacencyMatrix[u, v] = value;
+        }
     }
 
     public class DictionaryGraph : IGraph
