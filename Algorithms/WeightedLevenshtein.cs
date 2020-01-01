@@ -41,7 +41,7 @@ namespace Protsyk.Toolkit.Levenshtein {
             return matrix[b1.Length, b2.Length] ;
         }
  
-        static void Main(string[] args) {
+        static void Test(string[] args) {
             double w1 = WeightedLevenshtein("THEATRE", "TNEATRE");
             double w2 = WeightedLevenshtein("THEATRE", "TOEATRE");
  

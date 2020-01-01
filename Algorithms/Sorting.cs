@@ -162,7 +162,7 @@ namespace Protsyk.Algorithms.Sorting {
         }
         #endregion
 
-        static void Main(string[] args) {
+        static void Test(string[] args) {
             //int[] a = { 4, 1, 3, 2, 16, 9, 10, 14, 8, 7 };
             //Console.WriteLine(string.Join(",", a));
 

@@ -7,7 +7,7 @@ namespace Protsyk.Algorithms.Sampling
 {
     class Program
     {
-        public static void Main(string[] args)
+        public static void Test(string[] args)
         {
             foreach (var item in Sample(10, Enumerable.Range(0, 100)))
             {

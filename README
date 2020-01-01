@@ -1,10 +1,9 @@
 /*
- * Copyright � 2001-2017, Petro Protsyk.
+ * Copyright © 2001-2020, Petro Protsyk.
  * http://www.protsyk.com
  */
 
-Puzzles, algorithms, useful code snippets, examples in: C++, C#, 
-Lisp and Prolog.
+Puzzles, algorithms, useful code snippets, examples in C#.
 
 Read LICENSE file for terms and conditions. This license
 applies to all source codes in this repository.

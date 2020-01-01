@@ -146,7 +146,7 @@ namespace PMS.Common.Text.Exact
             return new string(b);
         }
 
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             var c = "xyxyxxxxzyyxyxy".FindAll("xy").ToArray();
 

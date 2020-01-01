@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using PMS.Common.Text.Automata;
+using Protsyk.Common;
 
 namespace Protsyk.Algorithms
 {

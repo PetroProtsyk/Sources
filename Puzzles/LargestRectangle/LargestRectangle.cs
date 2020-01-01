@@ -7,7 +7,7 @@ namespace LargestRectangle
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             int[] bars = { 1, 5, 5, 2, 3, 2, 2, 1, 5, 5, 1, 2, 1 };
 

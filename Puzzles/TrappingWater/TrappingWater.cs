@@ -82,7 +82,7 @@ namespace trap
             return water;
         }
 
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             //trapping water
             {

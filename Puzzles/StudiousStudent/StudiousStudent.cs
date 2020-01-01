@@ -43,7 +43,7 @@ namespace Protsyk.Puzzles {
     class Program {
         static int N;
 
-        static void Main(string[] args) {
+        static void Test(string[] args) {
             string s = File.ReadAllText(args[0]);
             string[] splits = s.Split(new char[] { '\n', '\r' },
                               StringSplitOptions.RemoveEmptyEntries);
@@ -60,8 +60,8 @@ namespace Protsyk.Puzzles {
         }
 
         private static string Solve(string[] words) {
-            string prefix = string.Empty;
-            List sorted = new List(words);
+            var prefix = string.Empty;
+            var sorted = new List<String>(words);
 
             while (true) {
                 sorted = sorted.OrderBy(x => x).ToList();

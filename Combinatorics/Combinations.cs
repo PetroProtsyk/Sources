@@ -89,7 +89,7 @@ namespace Protsyk.Combinatorics.Combinations
             }
         }
 
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
 
             string[] input = { "1", "2", "3", "4", "5" };

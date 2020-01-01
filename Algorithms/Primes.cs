@@ -36,7 +36,7 @@ namespace Protsyk.Algorithms.Primes {
             return p.OrderBy(i => i).ToList();
         }
 
-        static void Main(string[] args) {
+        static void Test(string[] args) {
             Stopwatch sw = Stopwatch.StartNew();
             var r = PrimesBit(int.Parse(args[0]));
             Console.WriteLine(r.Count + " " + sw.Elapsed);

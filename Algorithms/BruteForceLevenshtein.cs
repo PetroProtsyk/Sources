@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SEA2016.FuzzySearch
+namespace Protsyk.Algorithms.FuzzySearch
 {
     /// <summary>
     /// Calculate Levenshtein distance between two strings using brute-force recursive algorithm
@@ -56,16 +56,16 @@ namespace SEA2016.FuzzySearch
             }
         }
     }
-    
 
-    public static class Program
+
+    public static class LevenshteinBruteForceTest
     {
-    	public static void Main(string[] args)
+        public static void Test(string[] args)
         {
-           var words = Console.ReadLine().Split(' ');
+            var words = Console.ReadLine().Split(' ');
 
-           Console.WriteLine($"Distance between words {words[0]} and {words[1]} using brute-force algorithm:");
-           Console.WriteLine(LevenshteinBruteForce.Calculate(words[0], words[1]));
+            Console.WriteLine($"Distance between words {words[0]} and {words[1]} using brute-force algorithm:");
+            Console.WriteLine(LevenshteinBruteForce.Calculate(words[0], words[1]));
         }
     }
 }

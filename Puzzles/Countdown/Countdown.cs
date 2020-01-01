@@ -6,7 +6,7 @@ namespace Numbers
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             int[] numbers = Console.ReadLine().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
             int target = int.Parse(Console.ReadLine());

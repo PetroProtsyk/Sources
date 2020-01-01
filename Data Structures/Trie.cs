@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-//Required file - AutomatonLevenshtein.cs
-using SEA2016.FuzzySearch;
+using Protsyk.Algorithms;
 
 namespace Protsyk.Collections
 {

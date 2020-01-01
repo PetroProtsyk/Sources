@@ -47,7 +47,7 @@ namespace Protsyk.Combinatorics.Permutations {
             return false;
         }
 
-        static void Main(string[] args) {
+        static void Test(string[] args) {
             int[] numbers = { 1, 2, 3, 4 };
 
             Console.WriteLine("Permutations in increasing order:");

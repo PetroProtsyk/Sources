@@ -33,7 +33,7 @@ namespace GenerateParentheses
             Solve(n, 0, 0, new char[2*n]);
         }
 
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             Solve(3);
         }

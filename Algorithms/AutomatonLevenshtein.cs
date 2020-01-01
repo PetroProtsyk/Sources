@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Protsyk.Common;
 
-namespace SEA2016.FuzzySearch
+namespace Protsyk.Algorithms
 {
     /// <summary>
     /// Calculate Levenshtein distance between two strings using Levenshtein automaton
@@ -15,7 +16,7 @@ namespace SEA2016.FuzzySearch
         {
             var dfa = CreateAutomaton(pattern, d).Determinize();
             var s = 0;
-            for (int i=0; i<text.Length; ++i)
+            for (int i = 0; i < text.Length; ++i)
             {
                 s = dfa.Next(s, text[i]);
             }
@@ -48,7 +49,7 @@ namespace SEA2016.FuzzySearch
                 {
                     if (i < m - 1)
                     {
-                        result.AddTransition(i + m * j, i + 1 + m * j, a[i]);
+                        result.AddTransition(i + m * j, i + 1 + m * j, CharRange.SingleChar(a[i]));
                     }
 
                     if (j < k)
@@ -67,11 +68,12 @@ namespace SEA2016.FuzzySearch
             return result;
         }
     }
-    
+
     public class DFA
     {
-        private readonly List<int> star = new List<int>();
-        private readonly List<List<Tuple<char, int>>> transitions = new List<List<Tuple<char, int>>>();
+        public static readonly int NoState = -1;
+
+        private readonly List<List<ValueTuple<CharRange, int>>> transitions = new List<List<ValueTuple<CharRange, int>>>();
         private readonly HashSet<int> final = new HashSet<int>();
 
         public void AddState(int state, bool isFinal)
@@ -81,34 +83,32 @@ namespace SEA2016.FuzzySearch
                 throw new ArgumentException();
             }
 
-            star.Add(-1);
-            transitions.Add(new List<Tuple<char, int>>());
+            transitions.Add(new List<ValueTuple<CharRange, int>>());
             if (isFinal)
             {
                 final.Add(state);
             }
         }
 
-        public void AddTransition(int from, int to, char c)
+        public void AddTransition(int from, int to, CharRange c)
         {
-            if (c == NFA.Any)
-            {
-                star[from] = to;
-            }
-            else
-            {
-                transitions[from].Add(new Tuple<char, int>(c, to));
-            }
+            transitions[from].Add(new ValueTuple<CharRange, int>(c, to));
         }
 
         public int Next(int s, char c)
         {
-            if (s == -1) return -1;
+            if (s == NoState)
+            {
+                return NoState;
+            }
             foreach (var t in transitions[s])
             {
-                if (t.Item1 == c) return t.Item2;
+                if (t.Item1.Contains(c))
+                {
+                    return t.Item2;
+                }
             }
-            return star[s];
+            return NoState;
         }
 
         public bool IsFinal(int s)
@@ -135,7 +135,8 @@ namespace SEA2016.FuzzySearch
                     result.AppendFormat("{0}[label = \"{0}\", shape = doublecircle, style = bold, fontsize = 14]", i);
                     result.AppendLine();
                 }
-                else {
+                else
+                {
                     result.AppendFormat("{0}[label = \"{0}\", shape = circle, style = solid, fontsize = 14]", i);
                     result.AppendLine();
                 }
@@ -143,12 +144,6 @@ namespace SEA2016.FuzzySearch
                 foreach (var t in transitions[i])
                 {
                     result.AppendFormat("{0}->{1} [label = \"{2}\", fontsize = 14];", i, t.Item2, t.Item1);
-                    result.AppendLine();
-                }
-
-                if (star[i] >= 0)
-                {
-                    result.AppendFormat("{0}->{1} [label = \"*\", fontsize = 14];", i, star[i]);
                     result.AppendLine();
                 }
             }
@@ -164,12 +159,15 @@ namespace SEA2016.FuzzySearch
     /// </summary>
     public class NFA
     {
-        public static char Epsilon = 'ε';
-        public static char Any = '*';
+        public static char EpsilonChar = 'ε';
+        public static char AnyChar = '*';
+
+        public static CharRange Epsilon = new CharRange(0, 0);
+        public static CharRange Any = new CharRange(1, 65535);
 
         private int initial = 0;
         private readonly List<int> states = new List<int>();
-        private readonly List<Tuple<int, int, char>> transitions = new List<Tuple<int, int, char>>();
+        private readonly List<ValueTuple<int, int, CharRange>> transitions = new List<ValueTuple<int, int, CharRange>>();
         private readonly HashSet<int> final = new HashSet<int>();
 
         public void AddState(int state, bool isFinal)
@@ -181,11 +179,11 @@ namespace SEA2016.FuzzySearch
             }
         }
 
-        public void AddTransition(int from, int to, char c)
+        public void AddTransition(int from, int to, CharRange c)
         {
-            if (!transitions.Any(t => t.Item1 == from && t.Item2 == to && t.Item3 == c))
+            if (!transitions.Any(t => t.Item1 == from && t.Item2 == to && t.Item3.Equals(c)))
             {
-                transitions.Add(new Tuple<int, int, char>(from, to, c));
+                transitions.Add(new ValueTuple<int, int, CharRange>(from, to, c));
             }
         }
 
@@ -255,17 +253,17 @@ namespace SEA2016.FuzzySearch
             return states.Max() + 1;
         }
 
-        private void EpsilonClosure(HashSet<int> set_state)
+        private void EpsilonClosure(HashSet<int> setState)
         {
-            Stack<int> frontier = new Stack<int>(set_state);
+            var frontier = new Stack<int>(setState);
 
             while (frontier.Count > 0)
             {
-                var from_state = frontier.Pop();
+                var fromState = frontier.Pop();
 
-                foreach (var ept in FindTransitions(from_state).Where(t => t.Item3 == Epsilon))
+                foreach (var ept in FindTransitions(fromState).Where(t => t.Item3.Equals(Epsilon)))
                 {
-                    if (set_state.Add(ept.Item2))
+                    if (setState.Add(ept.Item2))
                     {
                         frontier.Push(ept.Item2);
                     }
@@ -273,7 +271,7 @@ namespace SEA2016.FuzzySearch
             }
         }
 
-        private IEnumerable<Tuple<int, int, char>> FindTransitions(int from_state)
+        private IEnumerable<ValueTuple<int, int, CharRange>> FindTransitions(int from_state)
         {
             return transitions.Where(t => t.Item1 == from_state);
         }
@@ -325,7 +323,8 @@ namespace SEA2016.FuzzySearch
                     result.AppendFormat("{0}[label = \"{0}\", shape = doublecircle, style = bold, fontsize = 14]", states[i]);
                     result.AppendLine();
                 }
-                else {
+                else
+                {
                     result.AppendFormat("{0}[label = \"{0}\", shape = circle, style = solid, fontsize = 14]", states[i]);
                     result.AppendLine();
                 }
@@ -333,12 +332,12 @@ namespace SEA2016.FuzzySearch
                 foreach (var t in transitions)
                 {
                     if (t.Item1 != states[i]) continue;
-                    if (t.Item3 == Any)
+                    if (t.Item3.Equals(Any))
                     {
                         result.AppendFormat("{0}->{1} [label = \"*\", fontsize = 14];", t.Item1, t.Item2);
                         result.AppendLine();
                     }
-                    else if (t.Item3 == Epsilon)
+                    else if (t.Item3.Equals(Epsilon))
                     {
                         result.AppendFormat("{0}->{1} [label = \"&epsilon;\", fontsize = 14];", t.Item1, t.Item2);
                         result.AppendLine();
@@ -359,31 +358,31 @@ namespace SEA2016.FuzzySearch
         {
             var target = new DFA();
 
-            Stack<Tuple<int, HashSet<int>>> frontier = new Stack<Tuple<int, HashSet<int>>>();
-            Dictionary<HashSet<int>, int> seen = new Dictionary<HashSet<int>, int>(new SetStateComparer());
-            int set_key = 0;
+            var frontier = new Stack<ValueTuple<int, HashSet<int>>>();
+            var seen = new Dictionary<HashSet<int>, int>(new SetStateComparer());
+            int setKey = 0;
 
-            HashSet<int> set_initial = new HashSet<int>();
-            set_initial.Add(0);
-            EpsilonClosure(set_initial);
+            var setInitial = new HashSet<int>();
+            setInitial.Add(0);
+            EpsilonClosure(setInitial);
 
-            target.AddState(set_key, ContainsFinalState(set_initial));
+            target.AddState(setKey, ContainsFinalState(setInitial));
 
-            frontier.Push(new Tuple<int, HashSet<int>>(set_key, set_initial));
-            seen[set_initial] = set_key;
+            frontier.Push(new ValueTuple<int, HashSet<int>>(setKey, setInitial));
+            seen[setInitial] = setKey;
 
             while (frontier.Count > 0)
             {
                 var current = frontier.Pop();
-                var current_key = current.Item1;
-                var current_set = current.Item2;
+                var currentKey = current.Item1;
+                var currentSet = current.Item2;
 
-                HashSet<char> inputs = new HashSet<char>();
-                foreach (var st in current_set)
+                var inputs = new HashSet<CharRange>();
+                foreach (var st in currentSet)
                 {
                     foreach (var t in FindTransitions(st))
                     {
-                        if (t.Item3 == Epsilon)
+                        if (t.Item3.Equals(Epsilon))
                         {
                             continue;
                         }
@@ -391,34 +390,50 @@ namespace SEA2016.FuzzySearch
                     }
                 }
 
-                foreach (var i in inputs)
+                var disjoinInputs = inputs.Disjoin();
+                foreach (var i in disjoinInputs)
                 {
-                    HashSet<int> new_state = new HashSet<int>();
+                    var newState = new HashSet<int>();
+                    var newTransition = new HashSet<CharRange>();
 
-                    foreach (var st in current_set)
+                    foreach (var st in currentSet)
                     {
-                        foreach (var t in FindTransitions(st).Where(j => j.Item3 == i || j.Item3 == Any))
+                        foreach (var t in FindTransitions(st))
                         {
-                            new_state.Add(t.Item2);
+                            var commonRange = t.Item3.Intersect(i);
+                            if (!commonRange.Equals(CharRange.Empty))
+                            {
+                                newState.Add(t.Item2);
+                                newTransition.Add(commonRange);
+                            }
                         }
                     }
 
-                    EpsilonClosure(new_state);
+                    var newTransitions = newTransition.Disjoin();
 
-                    int seen_state_key;
-                    if (!seen.TryGetValue(new_state, out seen_state_key))
+                    EpsilonClosure(newState);
+
+                    int seenStateKey;
+                    if (!seen.TryGetValue(newState, out seenStateKey))
                     {
-                        set_key++;
+                        setKey++;
 
-                        target.AddState(set_key, ContainsFinalState(new_state));
-                        target.AddTransition(current_key, set_key, i);
+                        target.AddState(setKey, ContainsFinalState(newState));
 
-                        frontier.Push(new Tuple<int, HashSet<int>>(set_key, new_state));
-                        seen[new_state] = set_key;
+                        foreach (var range in newTransitions)
+                        {
+                            target.AddTransition(currentKey, setKey, range);
+                        }
+
+                        frontier.Push(new ValueTuple<int, HashSet<int>>(setKey, newState));
+                        seen[newState] = setKey;
                     }
                     else
                     {
-                        target.AddTransition(current_key, seen_state_key, i);
+                        foreach (var range in newTransitions)
+                        {
+                            target.AddTransition(currentKey, seenStateKey, range);
+                        }
                     }
                 }
             }
@@ -427,14 +442,14 @@ namespace SEA2016.FuzzySearch
         }
     }
 
-    public static class Program
+    public static class LevenshteinAutomatonTest
     {
-    	public static void Main(string[] args)
+        public static void Test(string[] args)
         {
-           var words = Console.ReadLine().Split(' ');
- 
-           Console.WriteLine($"Matching words {words[0]} and {words[1]} using Levenshtein automaton with distance {words[2]}:");
-           Console.WriteLine(LevenshteinAutomaton.Match(words[0], words[1], int.Parse(words[2])));
+            var words = Console.ReadLine().Split(' ');
+
+            Console.WriteLine($"Matching words {words[0]} and {words[1]} using Levenshtein automaton with distance {words[2]}:");
+            Console.WriteLine(LevenshteinAutomaton.Match(words[0], words[1], int.Parse(words[2])));
         }
-    }    
+    }
 }

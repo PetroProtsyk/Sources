@@ -34,7 +34,7 @@ namespace HanoiTower
             Solve1(n-1, temp, to, from);
         }
 
-        static void Main(string[] args)
+        static void Test(string[] args)
         {
             // Solve(3, 0, 'A', 'B', 'C');
             Solve1(3, 'A', 'B', 'C');
