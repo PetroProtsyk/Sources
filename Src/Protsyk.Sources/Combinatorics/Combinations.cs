@@ -7,9 +7,9 @@ using System.Text;
 
 namespace Protsyk.Combinatorics.Combinations
 {
-    class Program
+    public class CombinationsCalculator
     {
-        static ulong Combinations(ulong n, ulong k)
+        public static ulong Combinations(ulong n, ulong k)
         {
             if (n == 0) return 0;
             if (k > n)  return 0;
@@ -18,7 +18,7 @@ namespace Protsyk.Combinatorics.Combinations
             return Combinations(n-1, k-1) + Combinations(n-1, k);
         }
 
-        static ulong CombinationsFormula(ulong n, ulong k)
+        public static ulong CombinationsFormula(ulong n, ulong k)
         {
             if (n == 0) return 0;
             if (k > n)  return 0;
@@ -42,7 +42,22 @@ namespace Protsyk.Combinatorics.Combinations
             result = (result / kf);
             return result;
         }
- 
+
+        public static ulong CombinationsKnuth(ulong n, ulong k)
+        {
+            if (k > n)
+            {
+                return 0UL;
+            }
+            ulong r = 1;
+            for (ulong d = 1; d <= k; ++d)
+            {
+                r *= n--;
+                r /= d;
+            }
+            return r;
+        }
+
 
         static Lazy<ulong[,]> combinationsCache = new Lazy<ulong[,]>(()=>InitializeCombinations(64));
 
@@ -69,7 +84,7 @@ namespace Protsyk.Combinatorics.Combinations
           return r;
         }
 
-        static ulong CombinationsCached(ulong n, ulong k)
+        public static ulong CombinationsCached(ulong n, ulong k)
         {
           if (k > n)  return 0;
           return combinationsCache.Value[n,k];
@@ -89,19 +104,15 @@ namespace Protsyk.Combinatorics.Combinations
             }
         }
 
-        static void Test(string[] args)
+        public static IEnumerable<T[]> ProduceCombinations<T>(int k, T[] input)
         {
-
-            string[] input = { "1", "2", "3", "4", "5" };
             int n = input.Length;
-            int m = 3;
-
             List<State> state = new List<State>();
 
             // Build state
-            for (int i = 0; i <= m; i++)
+            for (int i = 0; i <= k; i++)
             {
-                state.Add(new State(m - i, 0));
+                state.Add(new State(k - i, 0));
             }
 
             while (state.Count > 0)
@@ -112,14 +123,15 @@ namespace Protsyk.Combinatorics.Combinations
 
                 if (currentState.m == 0)
                 {
-                    // We are done, print combination
+                    // We are done, produce combination
                     int index = 0;
+                    T[] result = new T[k];
                     foreach (State s in state)
                     {
-                        Console.Write(input[s.i + index]);
+                        result[index] = input[s.i + index];
                         index++;
                     }
-                    Console.WriteLine();
+                    yield return result;
 
                     continue;
                 }

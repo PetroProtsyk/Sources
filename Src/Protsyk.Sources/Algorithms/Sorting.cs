@@ -3,18 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
-namespace Protsyk.Algorithms.Sorting {
-    
-    class Program {
+namespace Protsyk.Algorithms.Sorting
+{
+
+    class Program
+    {
 
         #region Common
-        static void Swap(ref int a, ref int b) {
+        static void Swap(ref int a, ref int b)
+        {
             int temp = a;
             a = b;
             b = temp;
         }
 
-        static bool Compare(int[] a, int[] b) {
+        static bool Compare(int[] a, int[] b)
+        {
             for (int i = 0; i < a.Length; i++)
                 if (a[i] != b[i])
                     return false;
@@ -24,12 +28,15 @@ namespace Protsyk.Algorithms.Sorting {
         #endregion
 
         #region Insertion Sort
-        static void InsertionSort(int[] input, int left, int right) {
-            for (int i = left + 1; i < right; i++) {
+        static void InsertionSort(int[] input, int left, int right)
+        {
+            for (int i = left + 1; i < right; i++)
+            {
                 int e = input[i];
                 int j = i;
 
-                while (j > left && input[j - 1] > e) {
+                while (j > left && input[j - 1] > e)
+                {
                     input[j] = input[j - 1];
                     --j;
                 }
@@ -40,13 +47,17 @@ namespace Protsyk.Algorithms.Sorting {
         #endregion
 
         #region Bubble Sort
-        static void BubbleSort(int[] input, int left, int right) {
+        static void BubbleSort(int[] input, int left, int right)
+        {
             if (left == right)
                 return;
 
-            for (int i = left; i < right - 1; i++) {
-                for (int j = i + 1; j < right; j++) {
-                    if (input[i] > input[j]) {
+            for (int i = left; i < right - 1; i++)
+            {
+                for (int j = i + 1; j < right; j++)
+                {
+                    if (input[i] > input[j])
+                    {
                         Swap(ref input[i], ref input[j]);
                     }
                 }
@@ -55,20 +66,24 @@ namespace Protsyk.Algorithms.Sorting {
         #endregion
 
         #region Heap Sort
-        static void PushDown(int[] input, int i, int left, int right) {
+        static void PushDown(int[] input, int i, int left, int right)
+        {
             int child1 = (i << 1) + 1 + left;
             int child2 = child1 + 1;
             int max = i + left;
 
-            if (child1 < right && input[max] < input[child1]) {
+            if (child1 < right && input[max] < input[child1])
+            {
                 max = child1;
             }
 
-            if (child2 < right && input[max] < input[child2]) {
+            if (child2 < right && input[max] < input[child2])
+            {
                 max = child2;
             }
 
-            if (max == i + left) {
+            if (max == i + left)
+            {
                 return;
             }
 
@@ -77,17 +92,21 @@ namespace Protsyk.Algorithms.Sorting {
             PushDown(input, max - left, left, right);
         }
 
-        static void MakeHeap(int[] input, int left, int right) {
+        static void MakeHeap(int[] input, int left, int right)
+        {
             int length = right - left;
-            for (int i = right - length / 2; i >= left; i--) {
+            for (int i = right - length / 2; i >= left; i--)
+            {
                 PushDown(input, i - left, left, right);
             }
         }
 
-        static void HeapSort(int[] input, int left, int right) {
+        static void HeapSort(int[] input, int left, int right)
+        {
             int length = right - left;
             MakeHeap(input, left, right);
-            for (int i = 1; i < length; i++) {
+            for (int i = 1; i < length; i++)
+            {
                 Swap(ref input[left], ref input[right - i]);
                 PushDown(input, 0, left, right - i);
             }
@@ -95,15 +114,20 @@ namespace Protsyk.Algorithms.Sorting {
         #endregion
 
         #region Quick Sort
-        static void QuickSort(int[] input, int left, int right) {
-            if (right - left <= 32) {
+        static void QuickSort(int[] input, int left, int right)
+        {
+            if (right - left <= 32)
+            {
                 InsertionSort(input, left, right);
-            } else if (right > left + 1) {
+            }
+            else if (right > left + 1)
+            {
                 int leftI = left;
                 int rightI = right - 1;
                 int pivot = input[right - 1];
 
-                while (leftI != rightI) {
+                while (leftI != rightI)
+                {
                     while (input[leftI] < pivot && leftI != rightI) leftI++;
                     while (input[rightI] >= pivot && leftI != rightI) rightI--;
 
@@ -120,11 +144,15 @@ namespace Protsyk.Algorithms.Sorting {
         #endregion
 
         #region Merge Sort
-        static void MergeSort(int[] input, int left, int right) {
-            if (right - left <= 32) {
+        static void MergeSort(int[] input, int left, int right)
+        {
+            if (right - left <= 32)
+            {
                 InsertionSort(input, left, right);
-            } else
-            if (right > left + 1) {
+            }
+            else
+            if (right > left + 1)
+            {
                 int middle = (right + left) >> 1;
 
                 if (middle > left)
@@ -137,18 +165,23 @@ namespace Protsyk.Algorithms.Sorting {
             }
         }
 
-        static void Merge(int[] input, int left, int middle, int right) {
+        static void Merge(int[] input, int left, int middle, int right)
+        {
             int[] merged = new int[right - left];
 
             int i = left;
             int j = middle;
             int c = 0;
 
-            while (i < middle && j < right) {
-                if (input[i] > input[j]) {
+            while (i < middle && j < right)
+            {
+                if (input[i] > input[j])
+                {
                     merged[c] = input[j];
                     ++j;
-                } else {
+                }
+                else
+                {
                     merged[c] = input[i];
                     ++i;
                 }
@@ -162,7 +195,8 @@ namespace Protsyk.Algorithms.Sorting {
         }
         #endregion
 
-        static void Test(string[] args) {
+        static void Test(string[] args)
+        {
             //int[] a = { 4, 1, 3, 2, 16, 9, 10, 14, 8, 7 };
             //Console.WriteLine(string.Join(",", a));
 
@@ -191,7 +225,8 @@ namespace Protsyk.Algorithms.Sorting {
             test.Sort();
             Console.WriteLine("Library sort:" + sw.ElapsedMilliseconds);
 
-            if (!Compare(a, test.ToArray()) || !Compare(b, test.ToArray()) || !Compare(c, test.ToArray()) ) {
+            if (!Compare(a, test.ToArray()) || !Compare(b, test.ToArray()) || !Compare(c, test.ToArray()))
+            {
                 throw new Exception("Sorting failed");
             }
 
