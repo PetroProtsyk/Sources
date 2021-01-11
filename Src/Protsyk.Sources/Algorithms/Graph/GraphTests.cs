@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
+using System.Text;
 using Protsyk.Common.UnitTests;
 
-namespace Protsyk.Collections.GraphTests
+namespace Protsyk.Sources.Algorithms.Graph
 {
     public static class GraphTests
     {
@@ -146,6 +147,42 @@ namespace Protsyk.Collections.GraphTests
             {
                 Console.WriteLine($"{edge.from} --> {edge.to}");
             }
+        }
+
+        public static void FindAllArticulationDFSRecursive()
+        {
+            // Sedgewick Algorithms p.439 figure 30.2
+            var g = LabeledGraph<string>.From(new LabeledVertex<string>[]
+                {
+                        LabeledVertex<string>.From("A", new string[]{ "F", "B", "C", "G" }),
+                        LabeledVertex<string>.From("B", new string[]{ "A" }),
+                        LabeledVertex<string>.From("C", new string[]{ "A", "G" }),
+                        LabeledVertex<string>.From("D", new string[]{ "F", "E" }),
+                        LabeledVertex<string>.From("E", new string[]{ "F", "G", "D" }),
+                        LabeledVertex<string>.From("F", new string[]{ "A", "E", "D" }),
+                        LabeledVertex<string>.From("G", new string[]{ "A", "L", "E", "H", "J", "C" }),
+                        LabeledVertex<string>.From("H", new string[]{ "I", "G" }),
+                        LabeledVertex<string>.From("I", new string[]{ "H" }),
+                        LabeledVertex<string>.From("J", new string[]{ "G", "L", "K", "M" }),
+                        LabeledVertex<string>.From("K", new string[]{ "J" }),
+                        LabeledVertex<string>.From("L", new string[]{ "G", "J", "M" }),
+                        LabeledVertex<string>.From("M", new string[]{ "J", "L" })
+                }
+            );
+
+            var sb1 = new StringBuilder();
+            DfsAlgorithm.DFS(g, g.GetIdByLabel("A"), x => sb1.AppendFormat("{0} ", g.GetVertexById(x).Label));
+
+            var sb2 = new StringBuilder();
+            DfsAlgorithm.DFSRecursive(g, g.GetIdByLabel("A"), x => sb2.AppendFormat("{0} ", g.GetVertexById(x).Label));
+
+            Assert.AreEqual("A F E G L J K M H I C D B ", sb1.ToString());
+
+            Assert.AreEqual(sb1.ToString(), sb2.ToString());
+
+            Assert.AreEqual("A G H J", string.Join(" ", DfsAlgorithm.FindArticulationPoints(g).Select(id => g.GetVertexById(id).Label)));
+
+            Assert.AreEqual("A G H J", string.Join(" ", DfsAlgorithm.FindArticulationPointsDFS(g).Select(id => g.GetVertexById(id).Label)));
         }
     }
 }

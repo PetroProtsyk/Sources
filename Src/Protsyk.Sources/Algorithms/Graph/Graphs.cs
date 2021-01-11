@@ -1,8 +1,9 @@
+using Protsyk.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Protsyk.Collections
+namespace Protsyk.Sources.Algorithms.Graph
 {
     /// <summary>
     /// Undirected Edge
@@ -39,7 +40,7 @@ namespace Protsyk.Collections
 
         public int GetHashCode(Edge x)
         {
-            return HashCombine.Combine(x.from, x.to, x.weight);
+            return HashCode.Combine(x.from, x.to, x.weight);
         }
     }
 
@@ -116,8 +117,7 @@ namespace Protsyk.Collections
 
         public static ArrayGraph CloneFromGraph(IGraph graph)
         {
-            var maybeArray = graph as ArrayGraph;
-            if (maybeArray != null)
+            if (graph is ArrayGraph maybeArray)
             {
                 return CloneFromArray(maybeArray.adjacencyMatrix);
             }
@@ -154,10 +154,7 @@ namespace Protsyk.Collections
 
         public DictionaryGraph(Dictionary<int, List<Edge>> graph)
         {
-            if (graph == null)
-                throw new ArgumentNullException();
-
-            this.graph = graph;
+            this.graph = graph ?? throw new ArgumentNullException();
         }
 
         public int VertexesCount()
@@ -177,12 +174,77 @@ namespace Protsyk.Collections
 
         public IEnumerable<Edge> EdgesFrom(int v)
         {
-           List<Edge> eds;
-           if (graph.TryGetValue(v, out eds))
-           {
-               return eds;
-           }
-           return Enumerable.Empty<Edge>();
+            if (graph.TryGetValue(v, out List<Edge> eds))
+            {
+                return eds;
+            }
+            return Enumerable.Empty<Edge>();
+        }
+    }
+
+    public class LabeledGraph<T> : IGraph
+    {
+        private readonly Dictionary<T, LabeledVertex<T>> vertecies = new Dictionary<T, LabeledVertex<T>>();
+        private readonly Dictionary<T, int> labelToId = new Dictionary<T, int>();
+        private readonly Dictionary<int, T> idTolabel = new Dictionary<int, T>();
+
+        public LabeledVertex<T> GetVertexByLabel(T label) => vertecies[label];
+
+        public LabeledVertex<T> GetVertexById(int id) => vertecies[idTolabel[id]];
+
+        public int GetIdByLabel(T label) => labelToId[label];
+
+        public static LabeledGraph<T> From(IEnumerable<LabeledVertex<T>> vertecies)
+        {
+            var g = new LabeledGraph<T>();
+            int nr = 0;
+            foreach (var v in vertecies)
+            {
+                g.vertecies.Add(v.Label, v);
+                g.labelToId.Add(v.Label, nr);
+                g.idTolabel.Add(nr, v.Label);
+                nr++;
+            }
+            return g;
+        }
+
+        public int VertexesCount() => vertecies.Count;
+
+        public IEnumerable<int> Vertexes() => idTolabel.Keys;
+
+        public IEnumerable<Edge> Edges()
+        {
+            return vertecies.Values.SelectMany(v => v.GetAdjacent().Select(s => new Edge(labelToId[v.Label], labelToId[s], 1)));
+        }
+
+        public IEnumerable<Edge> EdgesFrom(int v)
+        {
+            if (idTolabel.TryGetValue(v, out T key))
+            {
+                return vertecies[key].GetAdjacent().Select(s => new Edge(v, labelToId[s], 1));
+            }
+            throw new Exception($"No vertex {v}");
+        }
+    }
+
+    public class LabeledVertex<T>
+    {
+        private List<T> adjacent;
+
+        public T Label { get; private set; }
+
+        public IEnumerable<T> GetAdjacent()
+        {
+            return adjacent;
+        }
+
+        public static LabeledVertex<T> From(T label, IEnumerable<T> adjacent)
+        {
+            return new LabeledVertex<T>
+            {
+                Label = label,
+                adjacent = new List<T>(adjacent ?? Enumerable.Empty<T>())
+            };
         }
     }
 }

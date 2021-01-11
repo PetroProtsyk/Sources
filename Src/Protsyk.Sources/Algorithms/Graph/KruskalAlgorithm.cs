@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Protsyk.DataStructures;
 
-namespace Protsyk.Collections
+namespace Protsyk.Sources.Algorithms.Graph
 {
     public class KruskalAlgorithm
     {
