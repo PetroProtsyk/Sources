@@ -9,7 +9,7 @@ namespace Protsyk.Sources
         public static void Main(String[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            PrintConsole(ConsoleColor.Green, "Algorithms, Data Structures, Puzzles (c) Petro Protsyk 2001-2021");
+            PrintConsole(ConsoleColor.Green, "Algorithms, Data Structures, Puzzles (c) Petro Protsyk 2001-2022");
         }
 
         private static void PrintConsole(ConsoleColor color, string text)
