@@ -239,6 +239,42 @@ namespace Protsyk.Algorithms.Sorting
         }
         #endregion
 
+        #region Radix Sort
+        static void RadixSort(int[] input, int left, int right)
+        {
+            // Only positive numbers
+            for (int i = left; i < right; i++)
+            {
+                if (input[i] < 0)
+                {
+                    throw new NotSupportedException("Negative numbers are not supported");
+                }
+            }
+            RadixSort(input, 31, left, right);
+        }
+
+        static void RadixSort(int[] input, int bits, int left, int right)
+        {
+            if (bits == 0 || (left >= right))
+            {
+                return;
+            }
+            // Only positive numbers
+            int m = 1 << (bits - 1);
+            int pos = left;
+            for (int i = left; i < right; i++)
+            {
+                if ((input[i] & m) == 0)
+                {
+                    Swap(ref input[pos], ref input[i]);
+                    pos++;
+                }
+            }
+            RadixSort(input, bits - 1, left, pos);
+            RadixSort(input, bits - 1, pos, right);
+        }
+        #endregion
+
         public static void Test()
         {
             //int[] a = { 4, 1, 3, 2, 16, 9, 10, 14, 8, 7 };
@@ -255,14 +291,27 @@ namespace Protsyk.Algorithms.Sorting
                 test.Add(r.Next());
             }
 
-            Console.WriteLine($"O(log(N)) sorting of {N} elements:");
-
             int[] etalon = test.ToArray();
             {
                 sw = Stopwatch.StartNew();
                 Array.Sort(etalon, 0, etalon.Length);
                 Console.WriteLine("\tLibrary sort:" + sw.ElapsedMilliseconds);
             }
+
+            Console.WriteLine($"O(N) sorting of {N} elements:");
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                RadixSort(a, 0, a.Length);
+                Console.WriteLine("\tRadix sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            Console.WriteLine($"O(log(N)) sorting of {N} elements:");
 
             {
                 int[] a = test.ToArray();
