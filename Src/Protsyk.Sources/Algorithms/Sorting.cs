@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Protsyk.Algorithms.Sorting
 {
 
-    class Program
+    class Implementation
     {
 
         #region Common
@@ -61,6 +61,27 @@ namespace Protsyk.Algorithms.Sorting
                         Swap(ref input[i], ref input[j]);
                     }
                 }
+            }
+        }
+        #endregion
+
+        #region Selection Sort
+        static void SelectionSort(int[] input, int left, int right)
+        {
+            if (left == right)
+                return;
+
+            for (int i = left; i < right; i++)
+            {
+                int minIndex = i;
+                for (int j = i + 1; j < right; j++)
+                {
+                    if (input[minIndex] > input[j])
+                    {
+                        minIndex = j;
+                    }
+                }
+                Swap(ref input[i], ref input[minIndex]);
             }
         }
         #endregion
@@ -195,39 +216,146 @@ namespace Protsyk.Algorithms.Sorting
         }
         #endregion
 
-        static void Test(string[] args)
+        #region Shell Sort
+        static void ShellSort(int[] input, int left, int right)
+        {
+            int n = right - left;
+            int h = 1;
+            while (h < n / 3)
+            {
+                h = 3 * h + 1;
+            }
+            while (h >= 1)
+            {
+                for (int i = left + h; i < right; i++)
+                {
+                    for (int j= i; (j>= h) && (input[j] < input[j - h]); j-= h)
+                    {
+                        Swap(ref input[j], ref input[j - h]);
+                    }
+                }
+                h = h / 3;
+            }
+        }
+        #endregion
+
+        public static void Test()
         {
             //int[] a = { 4, 1, 3, 2, 16, 9, 10, 14, 8, 7 };
             //Console.WriteLine(string.Join(",", a));
 
+            int n = 50000;
+            int N = n * 100;
+
             Stopwatch sw;
             List<int> test = new List<int>();
             Random r = new Random();
-            for (int i = 0; i < 2000000; i++)
-                test.Add(r.Next());
-
-            int[] a = test.ToArray();
-            sw = Stopwatch.StartNew();
-            HeapSort(a, 0, a.Length);
-            Console.WriteLine("Heap sort:" + sw.ElapsedMilliseconds);
-
-            int[] b = test.ToArray();
-            sw = Stopwatch.StartNew();
-            QuickSort(b, 0, b.Length);
-            Console.WriteLine("Quick sort:" + sw.ElapsedMilliseconds);
-
-            int[] c = test.ToArray();
-            sw = Stopwatch.StartNew();
-            MergeSort(c, 0, c.Length);
-            Console.WriteLine("Merge sort:" + sw.ElapsedMilliseconds);
-
-            sw = Stopwatch.StartNew();
-            test.Sort();
-            Console.WriteLine("Library sort:" + sw.ElapsedMilliseconds);
-
-            if (!Compare(a, test.ToArray()) || !Compare(b, test.ToArray()) || !Compare(c, test.ToArray()))
+            for (int i = 0; i < N; i++)
             {
-                throw new Exception("Sorting failed");
+                test.Add(r.Next());
+            }
+
+            Console.WriteLine($"O(log(N)) sorting of {N} elements:");
+
+            int[] etalon = test.ToArray();
+            {
+                sw = Stopwatch.StartNew();
+                Array.Sort(etalon, 0, etalon.Length);
+                Console.WriteLine("\tLibrary sort:" + sw.ElapsedMilliseconds);
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                HeapSort(a, 0, a.Length);
+                Console.WriteLine("\tHeap sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                QuickSort(a, 0, a.Length);
+                Console.WriteLine("\tQuick sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                MergeSort(a, 0, a.Length);
+                Console.WriteLine("\tMerge sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            Console.WriteLine($"Sub quadratic sorting of {N} elements:");
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                ShellSort(a, 0, a.Length);
+                Console.WriteLine("\tShell sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            Console.WriteLine($"O(N^2) sorting of {n} elements:");
+
+            test.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                test.Add(r.Next());
+            }
+
+            etalon = test.ToArray();
+            {
+                sw = Stopwatch.StartNew();
+                Array.Sort(etalon, 0, etalon.Length);
+                Console.WriteLine("\tLibrary sort:" + sw.ElapsedMilliseconds);
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                InsertionSort(a, 0, a.Length);
+                Console.WriteLine("\tInsertion sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                SelectionSort(a, 0, a.Length);
+                Console.WriteLine("\tSelection sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                BubbleSort(a, 0, a.Length);
+                Console.WriteLine("\tBubble sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
             }
 
         }
