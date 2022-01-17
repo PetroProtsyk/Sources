@@ -229,7 +229,7 @@ namespace Protsyk.Algorithms.Sorting
             {
                 for (int i = left + h; i < right; i++)
                 {
-                    for (int j= i; (j>= h) && (input[j] < input[j - h]); j-= h)
+                    for (int j = i; (j >= h) && (input[j] < input[j - h]); j -= h)
                     {
                         Swap(ref input[j], ref input[j - h]);
                     }
@@ -273,6 +273,55 @@ namespace Protsyk.Algorithms.Sorting
             RadixSort(input, bits - 1, left, pos);
             RadixSort(input, bits - 1, pos, right);
         }
+
+        public static void Radix10Sort(int[] input, int left, int right)
+        {
+            // Only positive numbers
+            for (int i = left; i < right; i++)
+            {
+                if (input[i] < 0)
+                {
+                    throw new NotSupportedException("Negative numbers are not supported");
+                }
+            }
+
+            int maximumNumber = input.Max();
+            int numberOfDigits = (int)Math.Log10(maximumNumber) + 1;
+
+            int placeValue = 1;
+            int[] temp = new int[right - left];
+            while (numberOfDigits-- > 0)
+            {
+                CountingSortOn(input, temp, left, right, placeValue);
+                placeValue *= 10;
+            }
+        }
+
+        private static void CountingSortOn(int[] input, int[] temp, int left, int right, int placeValue)
+        {
+            int range = 10;
+            int[] frequency = new int[range];
+
+            for (int i = left; i < right; i++)
+            {
+                int digit = (input[i] / placeValue) % range;
+                frequency[digit]++;
+            }
+
+            for (int i = 1; i < range; i++)
+            {
+                frequency[i] += frequency[i - 1];
+            }
+
+            for (int i = right - 1; i >= left; i--)
+            {
+                int digit = (input[i] / placeValue) % range;
+                temp[frequency[digit] - 1] = input[i];
+                frequency[digit]--;
+            }
+
+            Array.Copy(temp, 0, input, left, temp.Length);
+        }
         #endregion
 
         public static void Test()
@@ -304,7 +353,18 @@ namespace Protsyk.Algorithms.Sorting
                 int[] a = test.ToArray();
                 sw = Stopwatch.StartNew();
                 RadixSort(a, 0, a.Length);
-                Console.WriteLine("\tRadix sort:" + sw.ElapsedMilliseconds);
+                Console.WriteLine("\tRadix base 2 sort:" + sw.ElapsedMilliseconds);
+                if (!Compare(a, etalon))
+                {
+                    throw new Exception("Sorting failed");
+                }
+            }
+
+            {
+                int[] a = test.ToArray();
+                sw = Stopwatch.StartNew();
+                Radix10Sort(a, 0, a.Length);
+                Console.WriteLine("\tRadix base 10 sort:" + sw.ElapsedMilliseconds);
                 if (!Compare(a, etalon))
                 {
                     throw new Exception("Sorting failed");
